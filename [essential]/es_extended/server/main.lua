@@ -207,7 +207,7 @@ AddEventHandler('playerDropped', function()
 
 		-- Inventory items
 		local subQuery  = ''
-		local itemCoutn = 0
+		local itemCount = 0
 
 		for i=1, #Users[_source].inventory, 1 do
 			subQuery  = subQuery .. "UPDATE user_inventory SET `count`='" .. Users[_source].inventory[i].count .. "' WHERE identifier = '" .. Users[_source].identifier .. "' AND item = '" .. Users[_source].inventory[i].item .. "';"
