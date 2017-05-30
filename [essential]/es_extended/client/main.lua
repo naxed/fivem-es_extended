@@ -188,7 +188,7 @@ AddEventHandler('esx:responsePlayerDataForGUI', function(data)
 end)
 
 RegisterNetEvent('esx:addInventoryItem')
-AddEventHandler('esx:addInventoryItem', function(inventory, money, accounts, item, count)
+AddEventHandler('esx:addInventoryItem', function(inventory, item, count)
 	
 	SendNUIMessage({
 		addInventoryItem = true,
@@ -203,7 +203,7 @@ AddEventHandler('esx:addInventoryItem', function(inventory, money, accounts, ite
 end)
 
 RegisterNetEvent('esx:removeInventoryItem')
-AddEventHandler('esx:removeInventoryItem', function(inventory, money, accounts, item, count)
+AddEventHandler('esx:removeInventoryItem', function(inventory, item, count)
 	
 	SendNUIMessage({
 		removeInventoryItem = true,
