@@ -3,15 +3,15 @@ FiveM Essential Extended
 
 -- INFO --
 
-Since commit of 08/06/2017 => you have to add a 'limit' column default to -1
+Since commit of 08/06/2017 => https://github.com/indilo53/fivem-es_extended/commit/82bddb3d511a0bd22b5a2338d862ec0b325d172f you have to add a 'limit' column default to -1
+
+if you are just installing es_extended from scratch you can skip this step, it is included in es_extended.sql
 
 ```
 ALTER TABLE `items`
 
 ADD COLUMN `limit` INT NOT NULL DEFAULT -1;
 ```
-
-if you are just installing es_extended from scratch you can skip this step, it is included in es_extended.sql
 
 Since commit of 25/05/2017 => https://github.com/indilo53/fivem-es_extended/commit/39e033120c6b9d037b29d66e95697ad9756ee2bf you have to add a 'name' column default to '' (empty string)
 
