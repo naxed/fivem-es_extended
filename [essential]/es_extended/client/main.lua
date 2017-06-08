@@ -309,6 +309,15 @@ AddEventHandler('esx:loadIPL', function(name)
 
 end)
 
+RegisterNetEvent('esx:unloadIPL')
+AddEventHandler('esx:unloadIPL', function(name)
+
+	Citizen.CreateThread(function()
+	  RemoveIpl(name)
+	end)
+
+end)
+
 RegisterNUICallback('select', function(data, cb)
 
 		if data.menu == 'inventory' then

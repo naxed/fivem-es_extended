@@ -1,6 +1,7 @@
 description 'Essential Extended'
 
 server_script 'config.lua'
+server_script 'server/common.lua'
 server_script 'server/classes/player.lua'
 server_script 'server/main.lua'
 

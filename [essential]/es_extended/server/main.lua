@@ -1,17 +1,3 @@
-require "resources/[essential]/es_extended/lib/MySQL"
-MySQL:open("127.0.0.1", "gta5_gamemode_essential", "root", "foo")
-
-local Users                = {}
-local UsableItemsCallbacks = {}
-local Items                = {}
-
-local executed_query = MySQL:executeQuery("SELECT * FROM items")
-local result         = MySQL:getResults(executed_query, {'name', 'label'})
-
-for i=1, #result, 1 do
-	Items[result[i].name] = result[i].label
-end
-
 RegisterServerEvent('esx:clientLog')
 AddEventHandler('esx:clientLog', function(str)
 	RconPrint('esx:clientLog => ' .. str)
@@ -42,31 +28,21 @@ AddEventHandler('esx:responseClientInfos', function(infos)
 			}
 		end
 
-		local items          = {}
-		local executed_query = MySQL:executeQuery("SELECT * FROM items")
-		local result         = MySQL:getResults(executed_query, {'name', 'label'})
-
-		for i=1, #result, 1 do
-			items[result[i].name] = result[i].label
-		end
-
 		local inventory      = {}
 		local executed_query = MySQL:executeQuery("SELECT * FROM user_inventory WHERE identifier = '@identifier'", {['@identifier'] = user.identifier})
 		local result         = MySQL:getResults(executed_query, {'item', 'count'}, "id")
 
 		for i=1, #result, 1 do
-
-			local usable = UsableItemsCallbacks[result[i].item] ~= nil
-
 			table.insert(inventory, {
 				item   = result[i].item,
 				count  = result[i].count,
-				label  = items[result[i].item],
-				usable = usable
+				label  = Items[result[i].item].label,
+				limit  = Items[result[i].item].limit,
+				usable = UsableItemsCallbacks[result[i].item] ~= nil
 			})
 		end
 
-		for k,v in pairs(items) do
+		for k,v in pairs(Items) do
 
 			local found = false
 
@@ -80,9 +56,11 @@ AddEventHandler('esx:responseClientInfos', function(infos)
 			if not found then
 				
 				table.insert(inventory, {
-					item  = k,
-					count = 0,
-					label = v
+					item   = k,
+					count  = 0,
+					label  = v,
+					limit  = Items[k].limit,
+					usable = UsableItemsCallbacks[k] ~= nil
 				})
 
 				MySQL:executeQuery("INSERT INTO user_inventory (identifier, item, count) VALUES ('@identifier', '@item', '@count')", {['@identifier'] = user.identifier, ['@item'] = k, ['@count'] = 0})
@@ -285,7 +263,7 @@ AddEventHandler('esx:removeInventoryItem', function(item, count)
 	local _source = source
 
 	if count == nil or count <= 0 then
-		TriggerClientEvent('esx:showNotification', _source, 'Quantité invalide')
+		TriggerClientEvent('esx:showNotification', _source, 'Quantité ~r~invalide~s~')
 	else
 
 		TriggerEvent('esx:getPlayerFromId', source, function(xPlayer)
@@ -299,10 +277,10 @@ AddEventHandler('esx:removeInventoryItem', function(item, count)
 			end
 
 			if count > foundItem.count then
-				TriggerClientEvent('esx:showNotification', _source, 'Quantité invalide')
+				TriggerClientEvent('esx:showNotification', _source, '~r~Quantité invalide~s~')
 			else
 				
-				TriggerClientEvent('esx:showNotification', _source, 'Suppression dans 5 minutes')
+				TriggerClientEvent('esx:showNotification', _source, '~r~Suppression~s~ dans 5 minutes')
 				
 				SetTimeout(Config.RemoveInventoryItemDelay, function()
 					
@@ -315,7 +293,7 @@ AddEventHandler('esx:removeInventoryItem', function(item, count)
 					
 					if total > 0 then
 						xPlayer:removeInventoryItem(item, total)
-						TriggerClientEvent('esx:showNotification', _source, 'Vous avez jeté ' .. foundItem.label .. ' x' .. total)
+						TriggerClientEvent('esx:showNotification', _source, 'Vous avez ~r~jeté~s~ ' .. foundItem.label .. ' x' .. total)
 					end
 
 				end)
@@ -337,7 +315,7 @@ AddEventHandler('esx:removeCash', function(amount)
 
 		if xPlayer.player.money >= amount then
 
-			TriggerClientEvent('esx:showNotification', _source, 'Suppression dans 5 minutes')
+			TriggerClientEvent('esx:showNotification', _source, '~r~Suppression~s~ dans 5 minutes')
 
 			SetTimeout(Config.RemoveInventoryItemDelay, function()
 				
@@ -350,13 +328,13 @@ AddEventHandler('esx:removeCash', function(amount)
 				
 				if total > 0 then
 					xPlayer:removeMoney(total)
-					TriggerClientEvent('esx:showNotification', _source, 'Vous avez jeté $' .. total)
+					TriggerClientEvent('esx:showNotification', _source, 'Vous avez ~r~jeté~s~ ~r~$' .. total)
 				end
 
 			end)
 
 		else
-			TriggerClientEvent('esx:showNotification',  _source, 'Montant invalide')
+			TriggerClientEvent('esx:showNotification',  _source, 'Montant ~r~invalide~s~')
 		end
 
 	end)
@@ -374,7 +352,7 @@ AddEventHandler('esx:removeAccountMoney', function(accountName, amount)
 
 		if account.money >= amount then
 
-			TriggerClientEvent('esx:showNotification', _source, 'Suppression dans 5 minutes')
+			TriggerClientEvent('esx:showNotification', _source, '~r~Suppression~s~ dans 5 minutes')
 
 			SetTimeout(Config.RemoveInventoryItemDelay, function()
 				
@@ -387,13 +365,13 @@ AddEventHandler('esx:removeAccountMoney', function(accountName, amount)
 				
 				if total > 0 then
 					xPlayer:removeAccountMoney(accountName, total)
-					TriggerClientEvent('esx:showNotification', _source, 'Vous avez jeté $' .. total)
+					TriggerClientEvent('esx:showNotification', _source, 'Vous avez ~r~jeté~s~ ~r~$' .. total)
 				end
 
 			end)
 
 		else
-			TriggerClientEvent('esx:showNotification', _source, 'Montant invalide')
+			TriggerClientEvent('esx:showNotification', _source, 'Montant ~r~invalide~s~')
 		end
 		
 	end)
@@ -405,23 +383,29 @@ AddEventHandler('esx:giveItem', function(playerId, itemName, count)
 	
 	local _source = source
 
-	TriggerEvent('esx:getPlayerFromId', _source, function(xPlayer)
+	TriggerEvent('esx:getPlayerFromId', _source, function(sourceXPlayer)
 
-		local item = xPlayer:getInventoryItem(itemName)
+		local sourceItem = sourceXPlayer:getInventoryItem(itemName)
 
-		if count > 0 and item.count >= count then
-
-			xPlayer:removeInventoryItem(itemName, count)
+		if count > 0 and sourceItem.count >= count then
 
 			TriggerEvent('esx:getPlayerFromId', playerId, function(targetXPlayer)
 				
-				targetXPlayer:addInventoryItem(itemName, count)
+				local targetItem = targetXPlayer:getInventoryItem(itemName)
 
-				TriggerClientEvent('esx:showNotification', _source, 'Vous avez donné x' .. count .. ' ' .. Items[itemName])
-				TriggerClientEvent('esx:showNotification', playerId, 'Vous avez reçu x' .. count .. ' ' .. Items[itemName])
+				if targetItem.limit ~= -1 and (targetItem.count + sourceItem.count) > targetItem.limit then
+					TriggerClientEvent('esx:showNotification', _source, 'Quantité ~r~invalide~s~, dépassement de limite d\'inventaire pour la cible')
+				else
+					
+					sourceXPlayer:removeInventoryItem(itemName, count)
+					targetXPlayer:addInventoryItem(itemName, count)
+
+					TriggerClientEvent('esx:showNotification', _source, 'Vous avez donné x' .. count .. ' ' .. Items[itemName].label)
+					TriggerClientEvent('esx:showNotification', playerId, 'Vous avez reçu x' .. count .. ' ' .. Items[itemName].label)
+				end
 			end)
 		else
-			TriggerClientEvent('esx:showNotification', _source, 'Quantité invalide')
+			TriggerClientEvent('esx:showNotification', _source, 'Quantité ~r~invalide~s~')
 		end
 
 	end)
@@ -445,12 +429,12 @@ AddEventHandler('esx:giveCash', function(playerId, amount)
 				
 				targetXPlayer:addMoney(amount)
 				
-				TriggerClientEvent('esx:showNotification', _source, 'Vous avez envoyé $' .. amount)
-				TriggerClientEvent('esx:showNotification', playerId, 'Vous avez reçu $' .. amount)
+				TriggerClientEvent('esx:showNotification', _source, 'Vous avez ~r~envoyé~s~ ~r~$' .. amount)
+				TriggerClientEvent('esx:showNotification', playerId, 'Vous avez ~g~reçu~s~ ~g~$' .. amount)
 			end)
 			
 		else
-			TriggerClientEvent('esx:showNotification', _source, 'Montant invalide')
+			TriggerClientEvent('esx:showNotification', _source, 'Montant ~r~invalide~s~')
 		end
 
 	end)
@@ -474,12 +458,12 @@ AddEventHandler('esx:giveAccountMoney', function(playerId, accountName, amount)
 				
 				targetXPlayer:addAccountMoney(accountName, amount)
 				
-				TriggerClientEvent('esx:showNotification', _source, 'Vous avez envoyé $' .. amount)
-				TriggerClientEvent('esx:showNotification', playerId, 'Vous avez reçu $' .. amount)
+				TriggerClientEvent('esx:showNotification', _source, 'Vous avez ~r~envoyé~s~ ~r~$' .. amount)
+				TriggerClientEvent('esx:showNotification', playerId, 'Vous avez ~g~reçu~s~ ~g~$' .. amount)
 			end)
 			
 		else
-			TriggerClientEvent('esx:showNotification', _source, 'Montant invalide')
+			TriggerClientEvent('esx:showNotification', _source, 'Montant ~r~invalide~s~')
 		end
 
 	end)
@@ -525,6 +509,12 @@ end, function(source, args, user)
 	TriggerClientEvent('chatMessage', source, "SYSTEM", {255, 0, 0}, "Insufficient Permissions.")
 end)
 
+TriggerEvent('es:addGroupCommand', 'unloadipl', 'admin', function(source, args, user)
+	TriggerClientEvent('esx:unloadIPL', -1, args[2])
+end, function(source, args, user)
+	TriggerClientEvent('chatMessage', source, "SYSTEM", {255, 0, 0}, "Insufficient Permissions.")
+end)
+
 TriggerEvent('es:addGroupCommand', 'setjob', 'jobmaster', function(source, args, user)
 	TriggerEvent('esx:getPlayerFromId', tonumber(args[2]), function(xPlayer)
 		xPlayer:setJob(args[3], tonumber(args[4]))
@@ -540,7 +530,7 @@ TriggerEvent('es:addCommand', 'sendmoney', function(source, args, user)
 
 	if amount == nil or amount <= 0 or amount > user.money then
 
-		TriggerClientEvent('chatMessage', source, 'MONEY', {255, 0, 0}, 'Montant invalide')
+		TriggerClientEvent('chatMessage', source, 'MONEY', {255, 0, 0}, 'Montant ~r~invalide~s~')
 
 	else
 
@@ -551,13 +541,13 @@ TriggerEvent('es:addCommand', 'sendmoney', function(source, args, user)
 				
 				if targetUser == nil then
 
-					TriggerClientEvent('chatMessage', source, 'MONEY', {255, 0, 0}, 'Aucun joueur trouvé ayant l\'id ' .. targetId)
+					TriggerClientEvent('chatMessage', source, 'MONEY', {255, 0, 0}, '~r~Aucun~s~ joueur trouvé ayant l\'id ' .. targetId)
 
 				else
 
 					if targetId == source then
 
-						TriggerClientEvent('chatMessage', source, 'MONEY', {255, 0, 0}, 'Vous ne pouvez pas vous envoyer de l\'argent à vous-même')
+						TriggerClientEvent('chatMessage', source, 'MONEY', {255, 0, 0}, 'Vous ~r~ne pouvez pas vous envoyer~s~ de l\'argent à vous-même')
 
 					else
 
@@ -567,8 +557,8 @@ TriggerEvent('es:addCommand', 'sendmoney', function(source, args, user)
 						user:removeMoney(amount)
 						targetUser:addMoney(amount)
 
-						TriggerClientEvent('chatMessage', source,   'MONEY', {255, 255, 0}, 'Vous avez envoyé €' .. args[3] .. ' à ' .. targetUserName)
-						TriggerClientEvent('chatMessage', targetId, 'MONEY', {255, 255, 0}, userName .. ' vous a envoyé €' .. args[3])
+						TriggerClientEvent('chatMessage', source,   'MONEY', {255, 255, 0}, 'Vous avez ~r~envoyé~s~ ~r~€~s~' .. args[3] .. ' à ' .. targetUserName)
+						TriggerClientEvent('chatMessage', targetId, 'MONEY', {255, 255, 0}, userName .. ' vous a ~r~envoyé~s~ ~r~€~s~' .. args[3])
 					
 					end
 				end
@@ -697,7 +687,7 @@ local function paycheck()
 
 			for k,v in pairs(players) do
 				v:addMoney(v.job.grade_salary)
-				TriggerClientEvent('esx:showNotification', v.player.source, 'Vous avez reçu votre salaire : ' .. '$' .. v.job.grade_salary)
+				TriggerClientEvent('esx:showNotification', v.player.source, 'Vous avez reçu votre salaire : ' .. '~g~$' .. v.job.grade_salary)
 			end
 
 		end)

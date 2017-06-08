@@ -155,8 +155,11 @@ function ExtendedPlayer:getInventoryItem(name)
 	-- Item does not exist, so we create it
 
 	local newItem = {
-		item  = name,
-		count = 0
+		item   = name,
+		count  = 0,
+		label  = Items[name].label,
+		limit  = Items[name].limit,
+		usable = UsableItemsCallbacks[name] ~= nil
 	}
 
 	table.insert(self.inventory, newItem)
