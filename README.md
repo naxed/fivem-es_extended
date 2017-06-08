@@ -23,6 +23,7 @@ ALTER TABLE `users`
 
 ADD COLUMN `name` VARCHAR(255) NULL DEFAULT '' AFTER `money`;
 ```
+___
 
 ![screenshot](http://gta-metropolis.ml/Files/Image/Acceuil.jpg)
 
