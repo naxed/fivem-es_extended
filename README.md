@@ -12,6 +12,7 @@ ALTER TABLE `items`
 
 ADD COLUMN `limit` INT NOT NULL DEFAULT -1;
 ```
+___
 
 Since commit of 25/05/2017 => https://github.com/indilo53/fivem-es_extended/commit/39e033120c6b9d037b29d66e95697ad9756ee2bf you have to add a 'name' column default to '' (empty string)
 
