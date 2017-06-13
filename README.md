@@ -1,6 +1,8 @@
 # fivem-es_extended
 FiveM Essential Extended
 
+Discord : https://discord.gg/RNeqr
+
 -- INFO --
 
 Since commit of 08/06/2017 => https://github.com/indilo53/fivem-es_extended/commit/82bddb3d511a0bd22b5a2338d862ec0b325d172f you have to add a 'limit' column default to -1
