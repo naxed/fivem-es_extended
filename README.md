@@ -1,7 +1,7 @@
 # fivem-es_extended
 FiveM Essential Extended
 
-Discord : https://discord.gg/RNeqr
+Discord : https://discord.gg/ggjkgTZ
 
 -- INFO --
 
