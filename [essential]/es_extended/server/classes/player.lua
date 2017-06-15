@@ -174,6 +174,7 @@ function ExtendedPlayer:addInventoryItem(name, count)
 	local newCount = item.count + count
 	item.count     = newCount
 
+	TriggerEvent("esx:onAddInventoryItem", self.player.source, item, count)
 	TriggerClientEvent("esx:addInventoryItem", self.player.source, self.inventory, item, count)
 
 end
@@ -183,7 +184,8 @@ function ExtendedPlayer:removeInventoryItem(name, count)
 	local item     = self:getInventoryItem(name)
 	local newCount = item.count - count
 	item.count     = newCount
-
+	
+	TriggerEvent("esx:onRemoveInventoryItem", self.player.source, item, count)
 	TriggerClientEvent("esx:removeInventoryItem", self.player.source, self.inventory, item, count)
 
 end
