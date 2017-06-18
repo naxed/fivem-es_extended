@@ -58,7 +58,7 @@ AddEventHandler('esx:responseClientInfos', function(infos)
 				table.insert(inventory, {
 					item   = k,
 					count  = 0,
-					label  = v,
+					label  = Items[k].label,
 					limit  = Items[k].limit,
 					usable = UsableItemsCallbacks[k] ~= nil
 				})
